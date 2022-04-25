@@ -22,11 +22,11 @@
 #include <Wire.h>             // TWI/I2C library for Arduino & Wiring
 #include <U8g2lib.h>          // For text on the little on-chip OLED
 
-#include <SPI.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
-#define SEALEVELPRESSURE_HPA (1013.25)
+//#define SEALEVELPRESSURE_HPA (1013.25) //this is the default
+#define SEALEVELPRESSURE_HPA (1014.9) // as reported at VNY 2022/04/24 23:00
 
 const String sketchName = "ESP32TwoBME280s";
 
@@ -112,12 +112,27 @@ void setup() {
     Serial.print("        ID of 0x61 represents a BME 680.\n");
     delay(5000);
   }
-    Serial.println("-- Default Test --");
     Serial.print("Sensor One ID was: 0X"); Serial.print(bme.sensorID(),16); Serial.print(" with a status of ");
     Serial.println(status);
     Serial.println(status1);
- 
-    delayTime = 1000;
+
+        // weather monitoring
+    Serial.println("-- Weather Station Scenario --");
+    Serial.println("forced mode, 1x temperature / 1x humidity / 1x pressure oversampling,");
+    Serial.println("filter off");
+    bme.setSampling(Adafruit_BME280::MODE_FORCED,
+                    Adafruit_BME280::SAMPLING_X1, // temperature
+                    Adafruit_BME280::SAMPLING_X1, // pressure
+                    Adafruit_BME280::SAMPLING_X1, // humidity
+                    Adafruit_BME280::FILTER_OFF   );
+    bme1.setSampling(Adafruit_BME280::MODE_FORCED,
+                    Adafruit_BME280::SAMPLING_X1, // temperature
+                    Adafruit_BME280::SAMPLING_X1, // pressure
+                    Adafruit_BME280::SAMPLING_X1, // humidity
+                    Adafruit_BME280::FILTER_OFF   );
+                      
+    // suggested rate is 1/60Hz (1m)
+    delayTime = 1000; // in milliseconds
 
     Serial.println();
 }
@@ -151,12 +166,16 @@ void printValues() {
 }
 
 void loop() { 
-    printValues();
-		g_oled.setCursor(18,g_linehight * 2 + 2);
+    // Only needed in forced mode! In normal mode, you can remove the next line.
+    bme.takeForcedMeasurement(); // has no effect in normal mode
+    bme1.takeForcedMeasurement(); // has no effect in normal mode
+   printValues();
+	g_oled.setCursor(18,g_linehight * 2 + 2);
   g_oled.print(bme.readAltitude(SEALEVELPRESSURE_HPA)*3.28084);
 //		g_oled.printf("%05.1lf", amps);       // send the amps to the OLED
 		//g_oled.printf("+%05d", diff_0_1);
-		g_oled.setCursor(20,g_linehight * 4 + 2);
+	g_oled.setCursor(20,g_linehight * 4 + 2);
+  g_oled.print(bme1.readAltitude(SEALEVELPRESSURE_HPA)*3.28084);
 //		g_oled.printf("%05.1lf", ampsWt);     // send the amps weighted average to the OLED
 		g_oled.sendBuffer();                  // Print it out to the OLED
     delay(delayTime);
