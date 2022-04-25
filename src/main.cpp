@@ -15,14 +15,20 @@
   Written by Limor Fried & Kevin Townsend for Adafruit Industries.
   BSD license, all text above must be included in any redistribution
   See the LICENSE file for details.
- ***************************************************************************/
 
-#include <Wire.h>
+  2022/04/24 Added the oled
+ ***************************************************************************/
+#include <Arduino.h>          // Arduino Framework <> searches the libraries paths
+#include <Wire.h>             // TWI/I2C library for Arduino & Wiring
+#include <U8g2lib.h>          // For text on the little on-chip OLED
+
 #include <SPI.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
 #define SEALEVELPRESSURE_HPA (1013.25)
+
+const String sketchName = "ESP32TwoBME280s";
 
 Adafruit_BME280 bme; // I2C
 Adafruit_BME280 bme1; // I2C
@@ -31,10 +37,52 @@ Adafruit_BME280 bme1; // I2C
 
 unsigned long delayTime;
 
+// The active board is declared in platformio.ini. The define is 
+// declared in pins_arduino.h.
+
+#if defined(ARDUINO_HELTEC_WIFI_LORA_32) //# is evaluated at time of compile
+  #define OLED_CLOCK SCL_OLED            // Pins for OLED display
+  #define OLED_DATA SDA_OLED
+  #define OLED_RESET RST_OLED
+//  #define LED_PIN 23                     //Output pin for the WS2812B led strip. Dave recomends pin 5 but it is being used by LoRa on my board
+#elif defined(WIFI_LoRa_32_V2) //# is evaluated at time of compile
+  #define OLED_CLOCK SCL_OLED            // Pins for OLED display
+  #define OLED_DATA SDA_OLED
+  #define OLED_RESET RST_OLED
+//  #define LED_PIN 23                     //Output pin for the WS2812B led strip. Dave recomends pin 5 but it is being used by LoRa on my board
+#elif defined(ARDUINO_LOLIN32)
+  #define OLED_CLOCK 4              // Pins for OLED display
+  #define OLED_DATA 5
+  #define OLED_RESET 16
+//  #define LED_PIN 5 //Output pin for the WS2812B led strip.
+#else
+  // #define OLED_CLOCK 15              // Pins for OLED display
+  // #define OLED_DATA 4
+  // #define OLED_RESET 16
+  // #define LED_PIN 5 //Output pin for the WS2812B led strip.
+#endif
+
+//clock and data got swapped around to use hardware I2C instead of software
+U8G2_SSD1306_128X64_NONAME_F_SW_I2C g_oled(U8G2_R2, OLED_CLOCK, OLED_DATA, OLED_RESET); // uses Software I2C and results in a framerate of 5 FPS
+// The following line that useds I2C hardware does not appear to work with other devices on the I2C
+//U8G2_SSD1306_128X64_NONAME_F_HW_I2C g_oled(U8G2_R2, OLED_RESET, OLED_CLOCK, OLED_DATA); // uses Hardware I2C and results in a framerate of 26 FPS 
+int g_linehight = 0;
+
+
 void setup() {
-    Serial.begin(115200);
-    while(!Serial);    // time to get serial running
-    Serial.println(F("BME280 test"));
+  Serial.begin(115200);
+  while(!Serial);    // time to get serial running
+  Serial.println();
+  Serial.println(sketchName);
+
+  g_oled.begin();
+  g_oled.clear(); //sets curser at 0,0. Text draws from the bottom up so you will see nothing.
+  g_oled.setFont(u8g2_font_profont15_tf);
+  g_linehight = g_oled.getFontAscent() - g_oled.getFontDescent(); // Decent is a negative number so we add it to the total
+  g_oled.drawRFrame(0,0,g_oled.getWidth(),g_oled.getHeight(),7);  // Draw a boarder around the display
+  g_oled.setCursor(3,g_linehight * 6 + 2);
+  g_oled.sendBuffer();
+  g_oled.setFont(u8g2_font_inb19_mn);
 
     unsigned status;
     unsigned status1;
@@ -104,5 +152,12 @@ void printValues() {
 
 void loop() { 
     printValues();
+		g_oled.setCursor(18,g_linehight * 2 + 2);
+  g_oled.print(bme.readAltitude(SEALEVELPRESSURE_HPA)*3.28084);
+//		g_oled.printf("%05.1lf", amps);       // send the amps to the OLED
+		//g_oled.printf("+%05d", diff_0_1);
+		g_oled.setCursor(20,g_linehight * 4 + 2);
+//		g_oled.printf("%05.1lf", ampsWt);     // send the amps weighted average to the OLED
+		g_oled.sendBuffer();                  // Print it out to the OLED
     delay(delayTime);
 }
