@@ -147,6 +147,7 @@ void printValues() {
 
     Serial.printf("Pressure = %3.1f hPa.\n", bme.readPressure() / 100.0F);
     Serial.printf("Pressure = %3.1f hPa.\n", bme1.readPressure() / 100.0F);
+    Serial.printf("diff = %2.2f hPa.\n", (bme.readPressure()-bme1.readPressure()) / 100u);
 
     Serial.printf("Approx. Altitude = %3.0f meters.\n", bme.readAltitude(SEALEVELPRESSURE_HPA));
     Serial.printf("Approx. Altitude = %3.0f meters.\n", bme1.readAltitude(SEALEVELPRESSURE_HPA));
@@ -155,6 +156,8 @@ void printValues() {
     Serial.printf("Humidity = %2.0f%%\n", bme1.readHumidity());
 
     Serial.printf("The calclated sea level pressure is \033[1;31m%06.2lf\033[0m based on the altitude at IBE of 266.0 meters. \n", bme.seaLevelForAltitude(266.0, bme.readPressure() / 100.0F));
+    Serial.printf("The calclated sea level pressure is \033[1;31m%06.2lf\033[0m based on the altitude at home of 375.0  meters. \n", bme.seaLevelForAltitude(375.0, bme.readPressure() / 100.0F));
+
     Serial.println();
 }
 
