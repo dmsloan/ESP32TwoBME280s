@@ -26,7 +26,10 @@
 #include <Adafruit_BME280.h>
 
 //#define SEALEVELPRESSURE_HPA (1013.25) //this is the default
-#define SEALEVELPRESSURE_HPA (1014.9) // as reported at VNY 2022/04/24 23:00
+//#define SEALEVELPRESSURE_HPA (1014.9) // as reported at VNY 2022/04/24 23:00
+//#define SEALEVELPRESSURE_HPA (1012.6) // as reported at BUR 2022/04/25 18:00
+#define SEALEVELPRESSURE_HPA (1014.31) // calculated from main at IBE 2022/04/25
+
 
 const String sketchName = "ESP32TwoBME280s";
 
@@ -161,6 +164,7 @@ void printValues() {
     Serial.println(" %");
     Serial.print(bme1.readHumidity());
     Serial.println(" %");
+    Serial.println(bme.seaLevelForAltitude(266.0, bme.readPressure() / 100.0F));
 
     Serial.println();
 }
