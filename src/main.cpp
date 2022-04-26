@@ -119,21 +119,22 @@ void setup() {
     Serial.println(status);
     Serial.println(status1);
 
-        // weather monitoring
-    Serial.println("-- Weather Station Scenario --");
-    Serial.println("forced mode, 1x temperature / 1x humidity / 1x pressure oversampling,");
-    Serial.println("filter off");
-    bme.setSampling(Adafruit_BME280::MODE_FORCED,
-                    Adafruit_BME280::SAMPLING_X1, // temperature
-                    Adafruit_BME280::SAMPLING_X1, // pressure
-                    Adafruit_BME280::SAMPLING_X1, // humidity
-                    Adafruit_BME280::FILTER_OFF   );
-    bme1.setSampling(Adafruit_BME280::MODE_FORCED,
-                    Adafruit_BME280::SAMPLING_X1, // temperature
-                    Adafruit_BME280::SAMPLING_X1, // pressure
-                    Adafruit_BME280::SAMPLING_X1, // humidity
-                    Adafruit_BME280::FILTER_OFF   );
-                      
+    // indoor navigation
+    Serial.println("-- Indoor Navigation Scenario --");
+    Serial.println("normal mode, 16x pressure / 2x temperature / 1x humidity oversampling,");
+    Serial.println("0.5ms standby period, filter 16x");
+    bme.setSampling(Adafruit_BME280::MODE_NORMAL,
+                    Adafruit_BME280::SAMPLING_X2,  // temperature
+                    Adafruit_BME280::SAMPLING_X16, // pressure
+                    Adafruit_BME280::SAMPLING_X1,  // humidity
+                    Adafruit_BME280::FILTER_X16,
+                    Adafruit_BME280::STANDBY_MS_0_5 );
+    bme1.setSampling(Adafruit_BME280::MODE_NORMAL,
+                    Adafruit_BME280::SAMPLING_X2,  // temperature
+                    Adafruit_BME280::SAMPLING_X16, // pressure
+                    Adafruit_BME280::SAMPLING_X1,  // humidity
+                    Adafruit_BME280::FILTER_X16,
+                    Adafruit_BME280::STANDBY_MS_0_5 );                      
     // suggested rate is 1/60Hz (1m)
     delayTime = 1000; // in milliseconds
 
@@ -141,38 +142,26 @@ void setup() {
 }
 
 void printValues() {
-    Serial.println("Temperature = ");
-    Serial.print(bme.readTemperature());
-    Serial.println(" °C");
-    Serial.print(bme1.readTemperature());
-    Serial.println(" °C");
+    Serial.printf("Temperature = %2.1f °C.\n", bme.readTemperature());
+    Serial.printf("Temperature = %2.1f °C.\n", bme1.readTemperature());
 
-    Serial.println("Pressure = ");
-    Serial.print(bme.readPressure() / 100.0F);
-    Serial.println(" hPa");
-    Serial.print(bme1.readPressure() / 100.0F);
-    Serial.println(" hPa");
+    Serial.printf("Pressure = %3.1f hPa.\n", bme.readPressure() / 100.0F);
+    Serial.printf("Pressure = %3.1f hPa.\n", bme1.readPressure() / 100.0F);
 
-    Serial.println("Approx. Altitude = ");
-    Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
-    Serial.println(" m");
-    Serial.print(bme1.readAltitude(SEALEVELPRESSURE_HPA));
-    Serial.println(" m");
+    Serial.printf("Approx. Altitude = %3.0f meters.\n", bme.readAltitude(SEALEVELPRESSURE_HPA));
+    Serial.printf("Approx. Altitude = %3.0f meters.\n", bme1.readAltitude(SEALEVELPRESSURE_HPA));
 
-    Serial.println("Humidity = ");
-    Serial.print(bme.readHumidity());
-    Serial.println(" %");
-    Serial.print(bme1.readHumidity());
-    Serial.println(" %");
-    Serial.println(bme.seaLevelForAltitude(266.0, bme.readPressure() / 100.0F));
+    Serial.printf("Humidity = %2.0f%%\n", bme.readHumidity());
+    Serial.printf("Humidity = %2.0f%%\n", bme1.readHumidity());
 
+    Serial.printf("The calclated sea level pressure is \033[1;31m%06.2lf\033[0m based on the altitude at IBE of 266.0 meters. \n", bme.seaLevelForAltitude(266.0, bme.readPressure() / 100.0F));
     Serial.println();
 }
 
 void loop() { 
     // Only needed in forced mode! In normal mode, you can remove the next line.
-    bme.takeForcedMeasurement(); // has no effect in normal mode
-    bme1.takeForcedMeasurement(); // has no effect in normal mode
+    //bme.takeForcedMeasurement(); // has no effect in normal mode
+    //bme1.takeForcedMeasurement(); // has no effect in normal mode
    printValues();
 	g_oled.setCursor(18,g_linehight * 2 + 2);
   g_oled.print(bme.readAltitude(SEALEVELPRESSURE_HPA)*3.28084);
