@@ -25,6 +25,22 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
+/***************************************************************************
+
+Re: Using BME280 or similar at altitude and changing temperature
+« Reply #5 on: November 28, 2018, 06:21:23 PM »
+I know I'm a little late to the party, but I found the following formula online that works pretty well for me to convert the reading at your location to sea level pressure.  I define an int called ELEVATION and set it to the altitude in meters where the sensor is located.
+SLPressure_mb = (((PressureReading)/pow((1-((double)(ELEVATION))/44330), 5.255))/100.0);
+
+Working in °C and meters and in milibars I have: created by LukaQ not Derek
+
+#define HEIGHT 437
+Pressure2 = mySensorB.readFloatPressure()/100;
+Pressure2plus = Pressure2 - Pressure2 * pow((1 - (0.0065 * HEIGHT / (Temp4 + 0.0065 * HEIGHT + 273.15))), 5.25588);
+Pressure2 = Pressure2 + Pressure2plus;
+
+ ***************************************************************************/
+
 //#define SEALEVELPRESSURE_HPA (1013.25) //this is the default
 //#define SEALEVELPRESSURE_HPA (1014.9) // as reported at VNY 2022/04/24 23:00
 //#define SEALEVELPRESSURE_HPA (1012.6) // as reported at BUR 2022/04/25 18:00
